@@ -8,11 +8,13 @@ import android.content.Intent
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.elvitalya.weather.databinding.ActivityMainBinding
@@ -29,6 +31,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -105,6 +109,7 @@ class MainActivity : AppCompatActivity() {
             val listCall: Call<WeatherResponse> = service.getWeather(latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID)
             showCustomProgressDialog()
             listCall.enqueue(object : Callback<WeatherResponse>{
+                @RequiresApi(Build.VERSION_CODES.N)
                 override fun onResponse(
                     call: Call<WeatherResponse>,
                     response: Response<WeatherResponse>
@@ -180,6 +185,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun setUpUi(weatherList: WeatherResponse){
         for( i in weatherList.weather.indices){
             Log.i("Weather Name", weatherList.weather.toString())
@@ -187,6 +194,15 @@ class MainActivity : AppCompatActivity() {
                 tvMain.text = weatherList.weather[i].main
                 tvMainDescription.text = weatherList.weather[i].description
                 tvTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+                tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
+                tvSunsetTime.text = unixTime(weatherList.sys.sunset)
+                tvCountry.text = weatherList.sys.country
+                tvName.text = weatherList.name
+                tvMax.text = weatherList.main.temp_max.toString() + getUnit(application.resources.configuration.locales.toString())
+                tvMin.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.locales.toString())
+                tvSpeed.text = weatherList.wind.speed.toString()
+                tvHumidity.text = weatherList.main.humidity.toString() + "%"
+
             }
         }
     }
@@ -197,5 +213,11 @@ class MainActivity : AppCompatActivity() {
             value = "°F"
         }
         return value
+    }
+    private fun unixTime(time: Long): String?{
+        val date = Date(time*1000L)
+        val sdf = SimpleDateFormat("HH:mm", Locale.UK)
+        sdf.timeZone = TimeZone.getDefault()
+        return sdf.format(date)
     }
 }

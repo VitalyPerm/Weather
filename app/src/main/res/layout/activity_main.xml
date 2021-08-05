@@ -222,7 +222,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:text="@string/miles_per_hour"
+                        android:text="@string/meter_per_second"
                         android:textColor="@color/secondary_text_color"
                         android:textSize="@dimen/value_text_size" />
                 </LinearLayout>
