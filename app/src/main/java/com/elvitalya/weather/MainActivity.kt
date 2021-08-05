@@ -17,6 +17,10 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.elvitalya.weather.Constants.getUnit
+import com.elvitalya.weather.Constants.hideProgressDialog
+import com.elvitalya.weather.Constants.showCustomProgressDialog
+import com.elvitalya.weather.Constants.unixTime
 import com.elvitalya.weather.databinding.ActivityMainBinding
 import com.elvitalya.weather.models.WeatherResponse
 import com.elvitalya.weather.network.WeatherService
@@ -31,13 +35,10 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.text.SimpleDateFormat
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
-    private var mProgressDialog: Dialog? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +50,6 @@ class MainActivity : AppCompatActivity() {
 
         if (!isLocationEnabled()) {
             Toast.makeText(this, "Нет доступа к местоположению", Toast.LENGTH_SHORT).show()
-
             val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             startActivity(intent)
         } else {
@@ -64,10 +64,9 @@ class MainActivity : AppCompatActivity() {
                             requestLocationData()
                         }
                         if (p0.isAnyPermissionPermanentlyDenied) {
-                      Constants.showToast("Нет доступа к местоположению")
+                            Constants.showToast("Нет доступа к местоположению")
                         }
                     }
-
                     override fun onPermissionRationaleShouldBeShown(
                         p0: MutableList<PermissionRequest>?,
                         p1: PermissionToken?
@@ -80,7 +79,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showRationalDialogForPermissions() {
+
+
+
+
+
+
+    fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
             .setMessage("It's look like you didnt granted all permission")
             .setPositiveButton("Go to Settings") { _, _ ->
@@ -97,31 +102,34 @@ class MainActivity : AppCompatActivity() {
                 dialog.dismiss()
             }.show()
     }
-    private fun getLocationWeatherDetails(latitude: Double, longitude: Double){
-        if(Constants.isNetworkAvailable(this)){
+
+    private fun getLocationWeatherDetails(latitude: Double, longitude: Double) {
+        if (Constants.isNetworkAvailable(this)) {
             val retrofit: Retrofit = Retrofit.Builder()
                 .baseUrl(Constants.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
 
-            val service : WeatherService = retrofit.create(WeatherService::class.java)
+            val service: WeatherService = retrofit.create(WeatherService::class.java)
 
-            val listCall: Call<WeatherResponse> = service.getWeather(latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID)
+            val listCall: Call<WeatherResponse> =
+                service.getWeather(latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID)
             showCustomProgressDialog()
-            listCall.enqueue(object : Callback<WeatherResponse>{
+            listCall.enqueue(object : Callback<WeatherResponse> {
                 @RequiresApi(Build.VERSION_CODES.N)
                 override fun onResponse(
                     call: Call<WeatherResponse>,
                     response: Response<WeatherResponse>
                 ) {
-                    if(response.isSuccessful){
+                    if (response.isSuccessful) {
                         hideProgressDialog()
                         val weatherList: WeatherResponse = response.body()!!
+
                         setUpUi(weatherList)
                         Log.i("Response!!!!", "$weatherList")
-                    }else{
+                    } else {
                         val rc = response.code()
-                        when (rc){
+                        when (rc) {
                             400 -> {
                                 Log.e("Error 400", "Bad connection")
                             }
@@ -143,11 +151,12 @@ class MainActivity : AppCompatActivity() {
             })
 
             Constants.showToast("You have connected to internet")
-        }else{
+        } else {
             Constants.showToast("You have not connected to internet")
         }
     }
-    private val mLocationCallBack = object : LocationCallback(){
+
+    private val mLocationCallBack = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val mLastLocation: Location = locationResult.lastLocation
             val latitude = mLastLocation.latitude
@@ -159,11 +168,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun requestLocationData(){
+    private fun requestLocationData() {
         val mLocationRequest = LocationRequest()
         mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallBack,
-            Looper.myLooper())
+        mFusedLocationClient.requestLocationUpdates(
+            mLocationRequest, mLocationCallBack,
+            Looper.myLooper()
+        )
     }
 
     private fun isLocationEnabled(): Boolean {
@@ -174,50 +185,49 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun showCustomProgressDialog(){
-        mProgressDialog = Dialog(this)
-        mProgressDialog?.setContentView(R.layout.dialog_custom_progress)
-        mProgressDialog?.show()
-    }
-    private fun hideProgressDialog(){
-        if(mProgressDialog !=null){
-            mProgressDialog?.dismiss()
-        }
-    }
-
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.N)
-    private fun setUpUi(weatherList: WeatherResponse){
-        for( i in weatherList.weather.indices){
+    private fun setUpUi(weatherList: WeatherResponse) {
+        for (i in weatherList.weather.indices) {
             Log.i("Weather Name", weatherList.weather.toString())
-            with(binding){
+            with(binding) {
                 tvMain.text = weatherList.weather[i].main
                 tvMainDescription.text = weatherList.weather[i].description
-                tvTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+                tvTemp.text =
+                    weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
                 tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
                 tvSunsetTime.text = unixTime(weatherList.sys.sunset)
                 tvCountry.text = weatherList.sys.country
                 tvName.text = weatherList.name
-                tvMax.text = weatherList.main.temp_max.toString() + getUnit(application.resources.configuration.locales.toString())
-                tvMin.text = weatherList.main.temp_min.toString() + getUnit(application.resources.configuration.locales.toString())
+                tvMax.text =
+                    weatherList.main.temp_max.toString() +
+                            getUnit(application.resources.configuration.locales.toString()) + " max"
+                tvMin.text =
+                    weatherList.main.temp_min.toString() +
+                            getUnit(application.resources.configuration.locales.toString()) + " min"
                 tvSpeed.text = weatherList.wind.speed.toString()
                 tvHumidity.text = weatherList.main.humidity.toString() + "%"
+
+                when (weatherList.weather[i].icon) {
+                    "01d" -> ivMain.setImageResource(R.drawable.sunny)
+                    "02d" -> ivMain.setImageResource(R.drawable.cloud)
+                    "03d" -> ivMain.setImageResource(R.drawable.cloud)
+                    "04d" -> ivMain.setImageResource(R.drawable.cloud)
+                    "04n" -> ivMain.setImageResource(R.drawable.cloud)
+                    "10d" -> ivMain.setImageResource(R.drawable.rain)
+                    "11d" -> ivMain.setImageResource(R.drawable.storm)
+                    "13d" -> ivMain.setImageResource(R.drawable.snowflake)
+                    "01n" -> ivMain.setImageResource(R.drawable.cloud)
+                    "02n" -> ivMain.setImageResource(R.drawable.cloud)
+                    "03n" -> ivMain.setImageResource(R.drawable.cloud)
+                    "10n" -> ivMain.setImageResource(R.drawable.cloud)
+                    "11n" -> ivMain.setImageResource(R.drawable.rain)
+                    "13n" -> ivMain.setImageResource(R.drawable.snowflake)
+                    else -> ivMain.setImageResource(R.drawable.sunny)
+                }
 
             }
         }
     }
 
-    private fun getUnit(value: String): String?{
-        var value = "°С"
-        if("US" == value || "LR" == value || "MM" == value) {
-            value = "°F"
-        }
-        return value
-    }
-    private fun unixTime(time: Long): String?{
-        val date = Date(time*1000L)
-        val sdf = SimpleDateFormat("HH:mm", Locale.UK)
-        sdf.timeZone = TimeZone.getDefault()
-        return sdf.format(date)
-    }
 }
