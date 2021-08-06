@@ -115,8 +115,8 @@ class MainActivity : AppCompatActivity() {
                                 tvMainDescription.text = weatherListByCity.weather[i].description
                                 tvTemp.text =
                                     weatherListByCity.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
-                                tvSunriseTime.text = unixTime(weatherListByCity.sys.sunrise.toLong())
-                                tvSunsetTime.text = unixTime(weatherListByCity.sys.sunset.toLong())
+                                tvSunriseTime.text = unixTime(weatherListByCity.sys.sunrise)
+                                tvSunsetTime.text = unixTime(weatherListByCity.sys.sunset)
                                 tvCountry.text = weatherListByCity.sys.country
                                 tvName.text = weatherListByCity.name
                                 tvMax.text =
