@@ -1,4 +1,4 @@
-package com.elvitalya.weather.models
+package com.elvitalya.weather.models.byLocation
 
 import java.io.Serializable
 

@@ -242,7 +242,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/app_margin"
-        android:layout_marginStart="@dimen/card_view_marginStartEnd"
         android:layout_marginTop="@dimen/card_view_marginTop"
         android:layout_marginEnd="@dimen/card_view_marginStartEnd"
         android:background="@android:color/white"
@@ -325,42 +324,42 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                >
+                android:gravity="center_horizontal">
 
                 <TextView
                     android:id="@+id/sunrise"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sunrise:"
                     android:layout_margin="@dimen/app_margin"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:textSize="20sp"
+                    android:text="Sunrise:"
                     android:textColor="@color/black"
+                    android:textSize="20sp"
                     android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintTop_toTopOf="parent" />
+
                 <TextView
                     android:id="@+id/sunset"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sunset:"
                     android:layout_marginStart="180dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:textSize="20sp"
+                    android:text="Sunset:"
                     android:textColor="@color/black"
+                    android:textSize="20sp"
                     android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/app_margin"
                     android:layout_marginEnd="@dimen/sunrise_marginTop"
-                   app:layout_constraintStart_toEndOf="@id/sunrise"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    app:layout_constraintStart_toEndOf="@id/sunrise"
+                    app:layout_constraintTop_toTopOf="parent">
 
                     <ImageView
                         android:id="@+id/iv_sunrise"
@@ -382,11 +381,11 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/sunset_marginStart"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
                     android:layout_margin="@dimen/app_margin"
-                    android:orientation="vertical">
+                    android:layout_marginStart="@dimen/sunset_marginStart"
+                    android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
                     <ImageView
                         android:id="@+id/iv_sunset"
@@ -407,6 +406,29 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btn_change_city"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:backgroundTint="#FFFFFF"
+        android:text="Change"
+        android:layout_margin="@dimen/app_margin"
+        android:textColor="#000000"
+        app:layout_constraintBottom_toBottomOf="@+id/et_change_city"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardView_location" />
+
+    <EditText
+        android:id="@+id/et_change_city"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/app_margin"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:hint="City"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardView_location" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

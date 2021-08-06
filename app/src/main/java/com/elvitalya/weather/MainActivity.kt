@@ -10,7 +10,6 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.DropBoxManager
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
@@ -24,10 +23,11 @@ import com.elvitalya.weather.Constants.getUnit
 import com.elvitalya.weather.Constants.hideProgressDialog
 import com.elvitalya.weather.Constants.showCustomProgressDialog
 import com.elvitalya.weather.Constants.unixTime
-import com.elvitalya.weather.databinding.ActivityMainBinding
 import com.elvitalya.weather.databinding.WeatherBinding
-import com.elvitalya.weather.models.WeatherResponse
+import com.elvitalya.weather.models.byCity.WeatherResponseCity
+import com.elvitalya.weather.models.byLocation.WeatherResponse
 import com.elvitalya.weather.network.WeatherService
+import com.elvitalya.weather.network.WeatherServiceByCity
 import com.google.android.gms.location.*
 import com.google.gson.Gson
 import com.karumi.dexter.Dexter
@@ -90,6 +90,93 @@ class MainActivity : AppCompatActivity() {
                 }).onSameThread()
                 .check()
         }
+        binding.btnChangeCity.setOnClickListener {
+            val city = binding.etChangeCity.text.toString()
+            val retrofit: Retrofit = Retrofit.Builder()
+                .baseUrl(Constants.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+            val service: WeatherServiceByCity = retrofit.create(WeatherServiceByCity::class.java)
+            val listCall: Call<WeatherResponseCity> = service.getWeatherByCity(city, Constants.APP_ID, Constants.METRIC_UNIT)
+            showCustomProgressDialog()
+            listCall.enqueue(object : Callback<WeatherResponseCity>{
+                @SuppressLint("SetTextI18n")
+                @RequiresApi(Build.VERSION_CODES.N)
+                override fun onResponse(
+                    call: Call<WeatherResponseCity>,
+                    response: Response<WeatherResponseCity>
+                ) {
+                    if(response.isSuccessful){
+                        hideProgressDialog()
+                        val weatherListByCity: WeatherResponseCity = response.body()!!
+                        for (i in weatherListByCity.weather.indices) {
+                            with(binding) {
+                                tvMain.text = weatherListByCity.weather[i].main
+                                tvMainDescription.text = weatherListByCity.weather[i].description
+                                tvTemp.text =
+                                    weatherListByCity.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+                                tvSunriseTime.text = unixTime(weatherListByCity.sys.sunrise.toLong())
+                                tvSunsetTime.text = unixTime(weatherListByCity.sys.sunset.toLong())
+                                tvCountry.text = weatherListByCity.sys.country
+                                tvName.text = weatherListByCity.name
+                                tvMax.text =
+                                    weatherListByCity.main.temp_max.toString() +
+                                            getUnit(application.resources.configuration.locales.toString()) + " max"
+                                tvMin.text =
+                                    weatherListByCity.main.temp_min.toString() +
+                                            getUnit(application.resources.configuration.locales.toString()) + " min"
+                                tvSpeed.text = weatherListByCity.wind.speed.toString()
+                                tvHumidity.text = "humidity:   " + weatherListByCity.main.humidity.toString() + "%"
+
+                                when (weatherListByCity.weather[i].icon) {
+                                    "01d" -> ivMain.setImageResource(R.drawable.sunny)
+                                    "02d" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "03d" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "04d" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "04n" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "10d" -> ivMain.setImageResource(R.drawable.rain)
+                                    "11d" -> ivMain.setImageResource(R.drawable.storm)
+                                    "13d" -> ivMain.setImageResource(R.drawable.snowflake)
+                                    "01n" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "02n" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "03n" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "10n" -> ivMain.setImageResource(R.drawable.cloud)
+                                    "11n" -> ivMain.setImageResource(R.drawable.rain)
+                                    "13n" -> ivMain.setImageResource(R.drawable.snowflake)
+                                    else -> ivMain.setImageResource(R.drawable.sunny)
+                                }
+
+                            }
+                        }
+
+
+
+
+                    }else {
+                        val rc = response.code()
+                        when (rc) {
+                            400 -> {
+                                Log.e("Error 400", "Bad connection")
+                            }
+                            404 -> {
+                                Log.e("Eror 404", "Not found")
+                            }
+                            else -> {
+                                Log.e("Error", "Generic error")
+                            }
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<WeatherResponseCity>, t: Throwable) {
+                    hideProgressDialog()
+                    Log.e("Errrorrrrr", t.message.toString())
+                }
+
+            })
+
+        }
+
     }
 
 
@@ -200,7 +287,7 @@ class MainActivity : AppCompatActivity() {
         if(!weatherResponseJsonString.isNullOrEmpty()){
             val weatherList = Gson().fromJson(weatherResponseJsonString, WeatherResponse::class.java)
             for (i in weatherList.weather.indices) {
-                Log.i("Weather Name", weatherList.weather.toString())
+//                Log.i("Weather Name", weatherList.weather.toString())
                 with(binding) {
                     tvMain.text = weatherList.weather[i].main
                     tvMainDescription.text = weatherList.weather[i].description

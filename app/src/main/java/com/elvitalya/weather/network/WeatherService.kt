@@ -1,6 +1,7 @@
 package com.elvitalya.weather.network
 
-import com.elvitalya.weather.models.WeatherResponse
+import com.elvitalya.weather.models.byCity.WeatherResponseCity
+import com.elvitalya.weather.models.byLocation.WeatherResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -12,4 +13,15 @@ interface WeatherService {
         @Query("units") units: String?,
         @Query("appid") appid:String?
     ) : retrofit2.Call<WeatherResponse>
+
+}
+
+
+interface WeatherServiceByCity{
+    @GET("2.5/weather")
+    fun getWeatherByCity(
+        @Query("q") city_name:String,
+        @Query("appid") appid:String?,
+        @Query("units") units: String?,
+    ) : retrofit2.Call<WeatherResponseCity>
 }
