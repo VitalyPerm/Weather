@@ -1,18 +1,21 @@
 package com.elvitalya.weather
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.DropBoxManager
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -22,9 +25,11 @@ import com.elvitalya.weather.Constants.hideProgressDialog
 import com.elvitalya.weather.Constants.showCustomProgressDialog
 import com.elvitalya.weather.Constants.unixTime
 import com.elvitalya.weather.databinding.ActivityMainBinding
+import com.elvitalya.weather.databinding.WeatherBinding
 import com.elvitalya.weather.models.WeatherResponse
 import com.elvitalya.weather.network.WeatherService
 import com.google.android.gms.location.*
+import com.google.gson.Gson
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -37,16 +42,24 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: WeatherBinding
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private lateinit var mSharedPreferences: SharedPreferences
+    private var mLatitude: Double = 0.0
+    private var mLongitude: Double = 0.0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = WeatherBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Constants.APP_ACTIVITY = this
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        mSharedPreferences = getSharedPreferences(Constants.PREFERENCE_NAME, Context.MODE_PRIVATE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            setUpUi()
+        }
+
 
         if (!isLocationEnabled()) {
             Toast.makeText(this, "Нет доступа к местоположению", Toast.LENGTH_SHORT).show()
@@ -80,11 +93,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-
-
-
-
     fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
             .setMessage("It's look like you didnt granted all permission")
@@ -103,7 +111,7 @@ class MainActivity : AppCompatActivity() {
             }.show()
     }
 
-    private fun getLocationWeatherDetails(latitude: Double, longitude: Double) {
+    private fun getLocationWeatherDetails() {
         if (Constants.isNetworkAvailable(this)) {
             val retrofit: Retrofit = Retrofit.Builder()
                 .baseUrl(Constants.BASE_URL)
@@ -113,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             val service: WeatherService = retrofit.create(WeatherService::class.java)
 
             val listCall: Call<WeatherResponse> =
-                service.getWeather(latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID)
+                service.getWeather(mLatitude, mLongitude, Constants.METRIC_UNIT, Constants.APP_ID)
             showCustomProgressDialog()
             listCall.enqueue(object : Callback<WeatherResponse> {
                 @RequiresApi(Build.VERSION_CODES.N)
@@ -124,8 +132,10 @@ class MainActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         hideProgressDialog()
                         val weatherList: WeatherResponse = response.body()!!
-
-                        setUpUi(weatherList)
+                        val weatherResponseJsonString = Gson().toJson(weatherList)
+                        val editor = mSharedPreferences.edit()
+                        editor.putString(Constants.WEATHER_RESPONSE_DATA, weatherResponseJsonString).apply()
+                        setUpUi()
                         Log.i("Response!!!!", "$weatherList")
                     } else {
                         val rc = response.code()
@@ -149,8 +159,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
             })
-
-            Constants.showToast("You have connected to internet")
         } else {
             Constants.showToast("You have not connected to internet")
         }
@@ -159,11 +167,11 @@ class MainActivity : AppCompatActivity() {
     private val mLocationCallBack = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val mLastLocation: Location = locationResult.lastLocation
-            val latitude = mLastLocation.latitude
-            Log.i("current latitude", "$latitude")
-            val longitude = mLastLocation.longitude
-            Log.i("current longitude", "$longitude")
-            getLocationWeatherDetails(latitude, longitude)
+            mLatitude = mLastLocation.latitude
+            Log.i("current latitude", "$mLatitude")
+            mLongitude = mLastLocation.longitude
+            Log.i("current longitude", "$mLongitude")
+            getLocationWeatherDetails()
         }
     }
 
@@ -187,46 +195,66 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.N)
-    private fun setUpUi(weatherList: WeatherResponse) {
-        for (i in weatherList.weather.indices) {
-            Log.i("Weather Name", weatherList.weather.toString())
-            with(binding) {
-                tvMain.text = weatherList.weather[i].main
-                tvMainDescription.text = weatherList.weather[i].description
-                tvTemp.text =
-                    weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
-                tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
-                tvSunsetTime.text = unixTime(weatherList.sys.sunset)
-                tvCountry.text = weatherList.sys.country
-                tvName.text = weatherList.name
-                tvMax.text =
-                    weatherList.main.temp_max.toString() +
-                            getUnit(application.resources.configuration.locales.toString()) + " max"
-                tvMin.text =
-                    weatherList.main.temp_min.toString() +
-                            getUnit(application.resources.configuration.locales.toString()) + " min"
-                tvSpeed.text = weatherList.wind.speed.toString()
-                tvHumidity.text = weatherList.main.humidity.toString() + "%"
+    private fun setUpUi() {
+        val weatherResponseJsonString = mSharedPreferences.getString(Constants.WEATHER_RESPONSE_DATA, "")
+        if(!weatherResponseJsonString.isNullOrEmpty()){
+            val weatherList = Gson().fromJson(weatherResponseJsonString, WeatherResponse::class.java)
+            for (i in weatherList.weather.indices) {
+                Log.i("Weather Name", weatherList.weather.toString())
+                with(binding) {
+                    tvMain.text = weatherList.weather[i].main
+                    tvMainDescription.text = weatherList.weather[i].description
+                    tvTemp.text =
+                        weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+                    tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
+                    tvSunsetTime.text = unixTime(weatherList.sys.sunset)
+                    tvCountry.text = weatherList.sys.country
+                    tvName.text = weatherList.name
+                    tvMax.text =
+                        weatherList.main.temp_max.toString() +
+                                getUnit(application.resources.configuration.locales.toString()) + " max"
+                    tvMin.text =
+                        weatherList.main.temp_min.toString() +
+                                getUnit(application.resources.configuration.locales.toString()) + " min"
+                    tvSpeed.text = weatherList.wind.speed.toString()
+                    tvHumidity.text = "humidity:   " + weatherList.main.humidity.toString() + "%"
 
-                when (weatherList.weather[i].icon) {
-                    "01d" -> ivMain.setImageResource(R.drawable.sunny)
-                    "02d" -> ivMain.setImageResource(R.drawable.cloud)
-                    "03d" -> ivMain.setImageResource(R.drawable.cloud)
-                    "04d" -> ivMain.setImageResource(R.drawable.cloud)
-                    "04n" -> ivMain.setImageResource(R.drawable.cloud)
-                    "10d" -> ivMain.setImageResource(R.drawable.rain)
-                    "11d" -> ivMain.setImageResource(R.drawable.storm)
-                    "13d" -> ivMain.setImageResource(R.drawable.snowflake)
-                    "01n" -> ivMain.setImageResource(R.drawable.cloud)
-                    "02n" -> ivMain.setImageResource(R.drawable.cloud)
-                    "03n" -> ivMain.setImageResource(R.drawable.cloud)
-                    "10n" -> ivMain.setImageResource(R.drawable.cloud)
-                    "11n" -> ivMain.setImageResource(R.drawable.rain)
-                    "13n" -> ivMain.setImageResource(R.drawable.snowflake)
-                    else -> ivMain.setImageResource(R.drawable.sunny)
+                    when (weatherList.weather[i].icon) {
+                        "01d" -> ivMain.setImageResource(R.drawable.sunny)
+                        "02d" -> ivMain.setImageResource(R.drawable.cloud)
+                        "03d" -> ivMain.setImageResource(R.drawable.cloud)
+                        "04d" -> ivMain.setImageResource(R.drawable.cloud)
+                        "04n" -> ivMain.setImageResource(R.drawable.cloud)
+                        "10d" -> ivMain.setImageResource(R.drawable.rain)
+                        "11d" -> ivMain.setImageResource(R.drawable.storm)
+                        "13d" -> ivMain.setImageResource(R.drawable.snowflake)
+                        "01n" -> ivMain.setImageResource(R.drawable.cloud)
+                        "02n" -> ivMain.setImageResource(R.drawable.cloud)
+                        "03n" -> ivMain.setImageResource(R.drawable.cloud)
+                        "10n" -> ivMain.setImageResource(R.drawable.cloud)
+                        "11n" -> ivMain.setImageResource(R.drawable.rain)
+                        "13n" -> ivMain.setImageResource(R.drawable.snowflake)
+                        else -> ivMain.setImageResource(R.drawable.sunny)
+                    }
+
                 }
-
             }
+        }
+
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.refresh -> {
+                getLocationWeatherDetails()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

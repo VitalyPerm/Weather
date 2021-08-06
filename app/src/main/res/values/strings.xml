@@ -4,4 +4,6 @@
 
     <string name="image_contentDescription">image</string>
     <string name="meter_per_second">m/s</string>
+    <string name="refresh">refresh</string>
+    <string name="menu_search">search</string>
 </resources>
