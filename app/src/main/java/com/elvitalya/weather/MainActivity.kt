@@ -80,6 +80,7 @@ class MainActivity : AppCompatActivity() {
                             Constants.showToast("Нет доступа к местоположению")
                         }
                     }
+
                     override fun onPermissionRationaleShouldBeShown(
                         p0: MutableList<PermissionRequest>?,
                         p1: PermissionToken?
@@ -97,22 +98,29 @@ class MainActivity : AppCompatActivity() {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
             val service: WeatherServiceByCity = retrofit.create(WeatherServiceByCity::class.java)
-            val listCall: Call<WeatherResponseCity> = service.getWeatherByCity(city, Constants.APP_ID, Constants.METRIC_UNIT)
+
+            val listCall: Call<WeatherResponseCity> =
+                if (this.resources.configuration.locale.language == "ru") {
+                    service.getWeatherByCity(city, "ru", Constants.APP_ID, Constants.METRIC_UNIT)
+                } else {
+                    service.getWeatherByCity(city, "en", Constants.APP_ID, Constants.METRIC_UNIT)
+                }
+
             showCustomProgressDialog()
-            listCall.enqueue(object : Callback<WeatherResponseCity>{
+            listCall.enqueue(object : Callback<WeatherResponseCity> {
                 @SuppressLint("SetTextI18n")
                 @RequiresApi(Build.VERSION_CODES.N)
                 override fun onResponse(
                     call: Call<WeatherResponseCity>,
                     response: Response<WeatherResponseCity>
                 ) {
-                    if(response.isSuccessful){
+                    if (response.isSuccessful) {
                         hideProgressDialog()
                         val weatherListByCity: WeatherResponseCity = response.body()!!
                         for (i in weatherListByCity.weather.indices) {
                             with(binding) {
-                                tvMain.text = weatherListByCity.weather[i].main
-                                tvMainDescription.text = weatherListByCity.weather[i].description
+                                tvMainDescription.text =
+                                    weatherListByCity.weather[i].description.capitalize()
                                 tvTemp.text =
                                     weatherListByCity.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
                                 tvSunriseTime.text = unixTime(weatherListByCity.sys.sunrise)
@@ -121,12 +129,16 @@ class MainActivity : AppCompatActivity() {
                                 tvName.text = weatherListByCity.name
                                 tvMax.text =
                                     weatherListByCity.main.temp_max.toString() +
-                                            getUnit(application.resources.configuration.locales.toString()) + " max"
+                                            getUnit(application.resources.configuration.locales.toString()) + getString(
+                                        R.string.max
+                                    )
                                 tvMin.text =
                                     weatherListByCity.main.temp_min.toString() +
-                                            getUnit(application.resources.configuration.locales.toString()) + " min"
+                                            getUnit(application.resources.configuration.locales.toString()) + getString(
+                                                                                    R.string.min)
                                 tvSpeed.text = weatherListByCity.wind.speed.toString()
-                                tvHumidity.text = "humidity:   " + weatherListByCity.main.humidity.toString() + "%"
+                                tvHumidity.text =
+                                    getString(R.string.humidity) + weatherListByCity.main.humidity.toString() + "%"
 
                                 when (weatherListByCity.weather[i].icon) {
                                     "01d" -> ivMain.setImageResource(R.drawable.sunny)
@@ -150,9 +162,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
 
-
-
-                    }else {
+                    } else {
                         val rc = response.code()
                         when (rc) {
                             400 -> {
@@ -206,9 +216,12 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             val service: WeatherService = retrofit.create(WeatherService::class.java)
-
             val listCall: Call<WeatherResponse> =
-                service.getWeather(mLatitude, mLongitude, Constants.METRIC_UNIT, Constants.APP_ID)
+                if (this.resources.configuration.locale.language == "ru") {
+                    service.getWeather(mLatitude, mLongitude, Constants.METRIC_UNIT, "ru", Constants.APP_ID)
+                } else {
+                    service.getWeather(mLatitude, mLongitude, Constants.METRIC_UNIT, "en", Constants.APP_ID)
+                }
             showCustomProgressDialog()
             listCall.enqueue(object : Callback<WeatherResponse> {
                 @RequiresApi(Build.VERSION_CODES.N)
@@ -221,7 +234,8 @@ class MainActivity : AppCompatActivity() {
                         val weatherList: WeatherResponse = response.body()!!
                         val weatherResponseJsonString = Gson().toJson(weatherList)
                         val editor = mSharedPreferences.edit()
-                        editor.putString(Constants.WEATHER_RESPONSE_DATA, weatherResponseJsonString).apply()
+                        editor.putString(Constants.WEATHER_RESPONSE_DATA, weatherResponseJsonString)
+                            .apply()
                         setUpUi()
                         Log.i("Response!!!!", "$weatherList")
                     } else {
@@ -283,13 +297,14 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.N)
     private fun setUpUi() {
-        val weatherResponseJsonString = mSharedPreferences.getString(Constants.WEATHER_RESPONSE_DATA, "")
-        if(!weatherResponseJsonString.isNullOrEmpty()){
-            val weatherList = Gson().fromJson(weatherResponseJsonString, WeatherResponse::class.java)
+        val weatherResponseJsonString =
+            mSharedPreferences.getString(Constants.WEATHER_RESPONSE_DATA, "")
+        if (!weatherResponseJsonString.isNullOrEmpty()) {
+            val weatherList =
+                Gson().fromJson(weatherResponseJsonString, WeatherResponse::class.java)
             for (i in weatherList.weather.indices) {
 //                Log.i("Weather Name", weatherList.weather.toString())
                 with(binding) {
-                    tvMain.text = weatherList.weather[i].main
                     tvMainDescription.text = weatherList.weather[i].description
                     tvTemp.text =
                         weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
@@ -299,10 +314,12 @@ class MainActivity : AppCompatActivity() {
                     tvName.text = weatherList.name
                     tvMax.text =
                         weatherList.main.temp_max.toString() +
-                                getUnit(application.resources.configuration.locales.toString()) + " max"
+                                getUnit(application.resources.configuration.locales.toString()) + getString(R.string.max)
+
+
                     tvMin.text =
                         weatherList.main.temp_min.toString() +
-                                getUnit(application.resources.configuration.locales.toString()) + " min"
+                                getUnit(application.resources.configuration.locales.toString()) + getString(R.string.min)
                     tvSpeed.text = weatherList.wind.speed.toString()
                     tvHumidity.text = "humidity:   " + weatherList.main.humidity.toString() + "%"
 

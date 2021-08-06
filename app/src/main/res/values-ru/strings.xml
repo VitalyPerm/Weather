@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Погода</string>
+    <string name="please_wait">Пожалуйста подождите</string>
+    <string name="image_contentDescription">картинка</string>
+    <string name="meter_per_second">М/с</string>
+    <string name="refresh">Обновить</string>
+    <string name="menu_search">Поиск</string>
+    <string name="max">" Макс"</string>
+    <string name="min">" Мин"</string>
+    <string name="humidity">Влажность</string>
+    <string name="sunrise">Восход:</string>
+    <string name="sunset">Закат:</string>
+    <string name="you_location_is">Вы находитесь в:</string>
+    <string name="change">Изменить</string>
+    <string name="city">Введите город</string>
+</resources>

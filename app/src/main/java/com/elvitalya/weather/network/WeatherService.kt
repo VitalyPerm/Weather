@@ -11,6 +11,7 @@ interface WeatherService {
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
         @Query("units") units: String?,
+        @Query("lang") lang:String,
         @Query("appid") appid:String?
     ) : retrofit2.Call<WeatherResponse>
 
@@ -21,7 +22,9 @@ interface WeatherServiceByCity{
     @GET("2.5/weather")
     fun getWeatherByCity(
         @Query("q") city_name:String,
+        @Query("lang") lang:String,
         @Query("appid") appid:String?,
         @Query("units") units: String?,
+
     ) : retrofit2.Call<WeatherResponseCity>
 }

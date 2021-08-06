@@ -42,22 +42,12 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_main"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/primary_text_color"
-                    android:textSize="@dimen/label_text_size"
-                    android:textStyle="bold"
-                    tools:text="Weather" />
-
-                <TextView
                     android:id="@+id/tv_main_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/secondary_text_color"
-                    android:textSize="@dimen/value_text_size"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
                     tools:text="condition" />
             </LinearLayout>
         </LinearLayout>
@@ -220,7 +210,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/primary_text_color"
+                    android:textColor="@color/black"
                     android:textSize="@dimen/label_text_size"
                     android:textStyle="bold"
                     tools:text="Minimum" />
@@ -230,8 +220,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/secondary_text_color"
-                    android:textSize="@dimen/value_text_size"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/label_text_size"
+                    android:textStyle="bold"
                     tools:text="Maximum" />
             </LinearLayout>
         </LinearLayout>
@@ -304,7 +295,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="@dimen/app_margin"
-                        android:text="You location is:"
+                        android:text="@string/you_location_is"
                         android:textColor="@color/black"
                         android:textSize="20sp"
                         android:textStyle="bold"
@@ -331,7 +322,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/app_margin"
-                    android:text="Sunrise:"
+                    android:text="@string/sunrise"
                     android:textColor="@color/black"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -344,7 +335,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="180dp"
-                    android:text="Sunset:"
+                    android:text="@string/sunset"
                     android:textColor="@color/black"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -412,7 +403,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:backgroundTint="#FFFFFF"
-        android:text="Change"
+        android:text="@string/change"
         android:layout_margin="@dimen/app_margin"
         android:textColor="#000000"
         app:layout_constraintBottom_toBottomOf="@+id/et_change_city"
@@ -426,7 +417,7 @@
         android:layout_margin="@dimen/app_margin"
         android:ems="10"
         android:inputType="textPersonName"
-        android:hint="City"
+        android:hint="@string/city"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cardView_location" />
 

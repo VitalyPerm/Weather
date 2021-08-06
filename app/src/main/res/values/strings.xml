@@ -6,4 +6,12 @@
     <string name="meter_per_second">m/s</string>
     <string name="refresh">refresh</string>
     <string name="menu_search">search</string>
+    <string name="max">\" max\"</string>
+    <string name="min">\" min\"</string>
+    <string name="humidity">\"humidity:   \"</string>
+    <string name="sunrise">Sunrise:</string>
+    <string name="sunset">Sunset:</string>
+    <string name="you_location_is">You location is:</string>
+    <string name="change">Change</string>
+    <string name="city">Enter city</string>
 </resources>
