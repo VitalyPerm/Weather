@@ -56,9 +56,7 @@ class MainActivity : AppCompatActivity() {
         Constants.APP_ACTIVITY = this
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         mSharedPreferences = getSharedPreferences(Constants.PREFERENCE_NAME, Context.MODE_PRIVATE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            setUpUi()
-        }
+        setUpUi()
 
 
         if (!isLocationEnabled()) {
@@ -163,13 +161,12 @@ class MainActivity : AppCompatActivity() {
 
 
                     } else {
-                        val rc = response.code()
-                        when (rc) {
+                        when (response.code()) {
                             400 -> {
                                 Log.e("Error 400", "Bad connection")
                             }
                             404 -> {
-                                Log.e("Eror 404", "Not found")
+                                Log.e("Error 404", "Not found")
                             }
                             else -> {
                                 Log.e("Error", "Generic error")
@@ -192,7 +189,7 @@ class MainActivity : AppCompatActivity() {
 
     fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
-            .setMessage("It's look like you didnt granted all permission")
+            .setMessage("It's look like you didn't granted all permission")
             .setPositiveButton("Go to Settings") { _, _ ->
                 try {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -239,13 +236,12 @@ class MainActivity : AppCompatActivity() {
                         setUpUi()
                         Log.i("Response!!!!", "$weatherList")
                     } else {
-                        val rc = response.code()
-                        when (rc) {
+                        when (response.code()) {
                             400 -> {
                                 Log.e("Error 400", "Bad connection")
                             }
                             404 -> {
-                                Log.e("Eror 404", "Not found")
+                                Log.e("Error 404", "Not found")
                             }
                             else -> {
                                 Log.e("Error", "Generic error")
@@ -282,7 +278,7 @@ class MainActivity : AppCompatActivity() {
         mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         mFusedLocationClient.requestLocationUpdates(
             mLocationRequest, mLocationCallBack,
-            Looper.myLooper()
+            Looper.myLooper()!!
         )
     }
 
@@ -303,7 +299,6 @@ class MainActivity : AppCompatActivity() {
             val weatherList =
                 Gson().fromJson(weatherResponseJsonString, WeatherResponse::class.java)
             for (i in weatherList.weather.indices) {
-//                Log.i("Weather Name", weatherList.weather.toString())
                 with(binding) {
                     tvMainDescription.text = weatherList.weather[i].description
                     tvTemp.text =
@@ -321,7 +316,7 @@ class MainActivity : AppCompatActivity() {
                         weatherList.main.temp_min.toString() +
                                 getUnit(application.resources.configuration.locales.toString()) + getString(R.string.min)
                     tvSpeed.text = weatherList.wind.speed.toString()
-                    tvHumidity.text = "humidity:   " + weatherList.main.humidity.toString() + "%"
+                    tvHumidity.text = getString(R.string.humidity) + weatherList.main.humidity.toString() + "%"
 
                     when (weatherList.weather[i].icon) {
                         "01d" -> ivMain.setImageResource(R.drawable.sunny)
