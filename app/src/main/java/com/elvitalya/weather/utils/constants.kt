@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.widget.Toast
+import com.elvitalya.weather.view.MainActivity
 import java.text.SimpleDateFormat
 import java.util.*
 
