@@ -1,6 +1,6 @@
 package com.elvitalya.weather.di
 
-import com.elvitalya.weather.Constants.BASE_URL
+import com.elvitalya.weather.utils.Constants.BASE_URL
 import com.elvitalya.weather.model.WeatherApi
 import com.elvitalya.weather.model.WeatherService
 import dagger.Module
